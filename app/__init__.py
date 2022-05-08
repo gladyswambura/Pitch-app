@@ -18,6 +18,7 @@ login_manager.session_protection = 'strong'
 
 def create_app(config_name):
     app.config.from_object(config_options[config_name])
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://moringa:Access@localhost/pitches"
 
     # blueprint for auth routes in our app
     from .auth import auth as auth_blueprint
