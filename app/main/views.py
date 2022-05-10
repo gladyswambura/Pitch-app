@@ -12,16 +12,17 @@ def index():
     product = Post.query.filter_by(category='product').all()
     idea = Post.query.filter_by(category='idea').all()
     business = Post.query.filter_by(category='Business').all()
-    return render_template('index.html', business=business, product=product, idea=idea, posts=posts)
+    school = Post.query.filter_by(category='School').all()
+    return render_template('index.html', business=business, school=school, product=product, idea=idea, posts=posts)
 
 
 @main.route('/posts')
 @login_required
 def posts():
-    posts = Post.query.all()
-    likes = Upvote.query.all()
-    user = current_user
-    return render_template('pitch_display.html', posts=posts, likes=likes, user=user)
+    # posts = Post.query.all()
+    # likes = Upvote.query.all()
+    # user = current_user
+    return render_template('pitch_display.html')
 
 
 @main.route('/new_post', methods=['GET', 'POST'])
@@ -39,13 +40,13 @@ def new_post():
     return render_template('pitch.html', form=form)
 
 
-@main.route('/comment/<int:post_id>', methods=['GET', 'POST'])
+@main.route('/comment/<int:Post_id>', methods=['GET', 'POST'])
 @login_required
-def comment(post_id):
+def comment(Post_id):
     form = CommentForm()
-    post = Post.query.get(post_id)
+    post = Post.query.get(Post_id)
     user = User.query.all()
-    comments = Comment.query.filter_by(post_id=post_id).all()
+    comments = Comment.query.filter_by(id=Post_id).all()
     if form.validate_on_submit():
         comment = form.comment.data
         post_id = post_id
@@ -85,6 +86,16 @@ def updateprofile(name):
         return redirect(url_for('.profile', name=name))
     return render_template('profile/update_profile.html', form=form)
 
+@main.route('/categories/<cate>')
+def category(cate):
+    '''
+    function to return the pitches by category
+    '''
+    category = Post.get_pitches(cate)
+    # print(category)
+    title = f'{cate}'
+    return render_template('categories.html',title = title, category = category)
+
 
 @main.route('/like/<int:id>', methods=['POST', 'GET'])
 @login_required
@@ -102,3 +113,22 @@ def downvote(id):
     vm = Downvote(post=post, downvote=1)
     vm.save()
     return redirect(url_for('main.posts'))
+
+@main.route('/new_comment/<int:Post_id>', methods = ['GET', 'POST'])
+@login_required
+def new_comment(Post_id):
+    post= Post.query.filter_by(id= Post_id)
+    form = CommentForm()
+
+    if form.validate_on_submit():
+        comment = form.comment.data
+
+        new_comment = Comment(comment=comment,user_id=current_user.id, Post_id=Post_id)
+
+
+        new_comment.save_comment()
+
+
+        return redirect(url_for('main.index'))
+    title='New Pitch'
+    return render_template('new_comment.html')
